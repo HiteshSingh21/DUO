@@ -212,6 +212,16 @@ The following describes queries by research purpose and which datasets with DU r
 | Commercial purpose/by a commercial entity | Future commercial use is prohibited [NCU]  Future use by for-profit entities is prohibited [NPU] | Any dataset where NPU and NCU are both false |
 <!-- |  | |  | -->
 
+### Using DUO with LLMs and Vector Search
+When building Retrieval-Augmented Generation (RAG) systems or interacting with Large Language Models (LLMs), developers cannot rely purely on text embeddings of the permissions. Vector databases execute similarity searches, which do not inherently traverse the DUO Directed Acyclic Graph (DAG). If an LLM strictly relies on vector chunk similarity, it will fail to inherit the parent-child relationships inherent to DUO.
+
+To address this, developers should map document chunks to DUO IDs first, and then execute a structured graph query (via SPARQL or a Python library like `NetworkX`/`rdflib`) before returning the context to the LLM.
+
+**Vector embedding similarity should not be used exclusively to determine permission hierarchy. Always resolve the DUO DAG mathematically before passing permissions into the prompt context for generation.**
+
+#### Developer-Friendly Flat Files for NLP Context
+RAG prompts have context window limits. An LLM cannot parse a 100,000+ line XML/OWL file to understand the rules. Do not attempt to pass the `.owl` file to an LLM. Instead, index the `duo.csv` flat file inside your vector database, or load the shorthand constraints (e.g., GRU, HMB, NPU) directly into the LLM's system prompt to act as the few-shot compliance rules engine.
+
 # The Data Use Ontology & The European General Data Protection Regulation
 ### Can DUO handle data privacy/data protection law compliance?
 - DUO terms describe permitted data use purposes and conditions, mainly focused on research uses of data. These terms are derived from a review of international data sharing practices and ethical principles, and not from a systematic review of applicable legal requirements. 
